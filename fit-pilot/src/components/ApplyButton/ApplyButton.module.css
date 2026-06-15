@@ -1,0 +1,21 @@
+.applyBtn {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--success-text);
+  background: var(--success-bg);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.applyBtn:hover:not(:disabled) {
+  border-color: var(--success-text);
+}
+
+.applyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

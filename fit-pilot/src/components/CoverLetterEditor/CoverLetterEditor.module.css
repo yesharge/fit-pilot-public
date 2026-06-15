@@ -1,0 +1,66 @@
+.editor {
+  min-height: 200px;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text-h);
+  background: var(--bg);
+  white-space: pre-wrap;
+  outline: none;
+}
+
+.wrapper .editor {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
+}
+
+.editor:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.editorStreaming {
+  background: var(--code-bg);
+  color: var(--text);
+  cursor: default;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--code-bg);
+}
+
+.formatBtn {
+  min-width: 2rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-h);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.formatBtn:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.underline {
+  text-decoration: underline;
+}

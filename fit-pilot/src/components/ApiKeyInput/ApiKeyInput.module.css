@@ -1,0 +1,33 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .label {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-h);
+  }
+  
+  .input {
+    padding: var(--space-3);
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--text-h);
+    background: var(--input-bg);
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
+  }
+  
+  .hint {
+    font-size: var(--text-xs);
+    color: var(--text);
+  }

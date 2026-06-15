@@ -1,0 +1,251 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  text-align: left;
+}
+
+/* ── Tracker chips ── */
+
+.tracker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 72px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--code-bg);
+}
+
+.chipValue {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.chipLabel {
+  font-size: var(--text-xs);
+  color: var(--text);
+}
+
+/* ── First-run hero ── */
+
+.heroText {
+  text-align: center;
+  max-width: 460px;
+  margin: var(--space-8) auto 0;
+}
+
+.heroTitle {
+  margin: 0 0 var(--space-2);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-h);
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.heroDrop {
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--code-bg);
+  opacity: 0.55;
+}
+
+.stepActive {
+  opacity: 1;
+  background: var(--accent-bg);
+}
+
+.stepNum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.stepActive .stepNum {
+  color: var(--accent);
+  background: var(--bg);
+}
+
+.stepTitle {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.stepCopy {
+  font-size: var(--text-xs);
+  color: var(--text);
+}
+
+/* ── Toolbar (resume present) ── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.searchEntry {
+  min-width: 180px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--text);
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.searchEntry:hover {
+  border-color: var(--accent-border);
+}
+
+.addBtn {
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-bg);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.addBtn:hover {
+  border-color: var(--accent);
+}
+
+.secondaryBtn {
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-h);
+  background: var(--code-bg);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.secondaryBtn:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+/* ── Board ── */
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.resultCount {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--success-text);
+}
+
+.emptyBoard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.emptyCopy {
+  margin: 0;
+  max-width: 380px;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbarActions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .searchEntry {
+    flex: 1;
+  }
+}

@@ -1,0 +1,96 @@
+:root {
+  /* ─── Base palette ────────────────────────── */
+  --text:          #5b6472;
+  --text-h:        #0b1220;
+  --bg:            #fff;
+  --border:        #e4e7ec;
+  --code-bg:       #f5f7fa;
+  --accent:        #2563eb;
+  --accent-bg:     rgba(37, 99, 235, 0.10);
+  --accent-border: rgba(37, 99, 235, 0.45);
+  --social-bg:     rgba(245, 247, 250, 0.6);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  /* ─── Fonts ───────────────────────────────── */
+  --sans:    system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono:    ui-monospace, Consolas, monospace;
+
+  /* ─── Spacing ─────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ─── Border radius ───────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* ─── Typography scale ────────────────────── */
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-md:   18px;
+
+  /* ─── Transitions ─────────────────────────── */
+  --transition: 0.15s ease;
+
+  /* ─── Component-level tokens ──────────────── */
+  /* Input */
+  --input-bg:           var(--bg);
+  --input-border:       var(--border);
+  --input-focus-ring:   var(--accent-bg);
+  --input-focus-border: var(--accent-border);
+
+  /* Drop zone */
+  --dropzone-bg:            var(--code-bg);
+  --dropzone-border:        var(--border);
+  --dropzone-hover-bg:      var(--accent-bg);
+  --dropzone-hover-border:  var(--accent-border);
+  --dropzone-active-bg:     var(--accent-bg);
+  --dropzone-active-border: var(--accent);
+
+  /* Status */
+  --success-bg:     rgba(22, 163, 74, 0.08);
+  --success-border: rgba(22, 163, 74, 0.3);
+  --success-text:   #15803d;
+  --error-bg:       rgba(220, 38, 38, 0.08);
+  --error-border:   rgba(220, 38, 38, 0.3);
+  --error-text:     #dc2626;
+  --warning-bg:     rgba(202, 138, 4, 0.08);
+  --warning-border: rgba(202, 138, 4, 0.3);
+  --warning-text:   #b45309;
+
+  /* ─── Root environment ────────────────────── */
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Base palette */
+    --text:          #9ca3af;
+    --text-h:        #f3f4f6;
+    --bg:            #0f1117;
+    --border:        #272b36;
+    --code-bg:       #1a1d26;
+    --accent:        #60a5fa;
+    --accent-bg:     rgba(96, 165, 250, 0.15);
+    --accent-border: rgba(96, 165, 250, 0.5);
+    --social-bg:     rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
+      rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+    /* Status */
+    --success-text: #4ade80;
+    --error-text:   #f87171;
+    --warning-text: #fbbf24;
+  }
+}

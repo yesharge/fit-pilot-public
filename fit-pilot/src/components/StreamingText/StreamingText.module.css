@@ -1,0 +1,37 @@
+.stream {
+    margin: 0;
+    padding: var(--space-4);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--mono);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--text-h);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+text-align: left;
+}
+
+.cursor {
+    display: inline-block;
+    width: 0.5em;
+    height: 1.1em;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    background: var(--accent);
+    animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cursor {
+        animation: none;
+    }
+}
