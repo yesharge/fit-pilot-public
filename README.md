@@ -28,7 +28,7 @@ Built with React, TypeScript, and Vite, on top of the Anthropic and OpenAI APIs.
 The Vite app lives in the `fit-pilot/` subdirectory of the repo.
 
 ```bash
-git clone https://github.com/yesharge/fitpilot
+git clone https://github.com/yesharge/fit-pilot-public
 cd fit-pilot/fit-pilot
 npm install
 ```
