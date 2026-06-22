@@ -38,6 +38,7 @@ export default function Home() {
   const { message: toastMessage, showToast, dismissToast } = useToast()
   const {
     search,
+    cancelSearch,
     addManual,
     jobs,
     total,
@@ -200,7 +201,10 @@ export default function Home() {
       {addOpen && (
         <AddJobModal
           initialTab={addTab}
-          onClose={() => setAddOpen(false)}
+          onClose={() => {
+            cancelSearch()
+            setAddOpen(false)
+          }}
           onSearch={search}
           onAddManual={addManual}
           searchStatus={status}
