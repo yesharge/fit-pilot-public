@@ -7,7 +7,11 @@ export const supabase: SupabaseClient | null = HAS_BACKEND
   : null
 
 /** POST to an edge function with the anon JWT (and optional shared app token). */
-export function callFunction(name: string, body: unknown): Promise<Response> {
+export function callFunction(
+  name: string,
+  body: unknown,
+  signal?: AbortSignal
+): Promise<Response> {
   return fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
     method: 'POST',
     headers: {
@@ -17,5 +21,6 @@ export function callFunction(name: string, body: unknown): Promise<Response> {
       ...(APP_TOKEN ? { 'x-app-token': APP_TOKEN } : {}),
     },
     body: JSON.stringify(body),
+    signal,
   })
 }

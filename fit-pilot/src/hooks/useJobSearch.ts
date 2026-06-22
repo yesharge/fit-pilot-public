@@ -29,6 +29,7 @@ type JobListAction =
   | { type: 'SET_JOBS'; jobs: Job[] }
   | { type: 'SEARCH_SUCCESS'; jobs: Job[] }
   | { type: 'SEARCH_ERROR'; error: string }
+  | { type: 'SEARCH_CANCEL' }
   | { type: 'ADD_MANUAL'; job: Job }
   | { type: 'SET_FIT_SCORE'; jobId: string; fitScore: number | null; descriptionVector?: number[] }
   | { type: 'SET_REWRITE'; jobId: string; result: RewriteResult }
@@ -107,6 +108,15 @@ function jobListReducer(state: JobListState, action: JobListAction): JobListStat
 
     case 'SEARCH_ERROR':
       return { ...state, status: 'error', error: action.error }
+
+    case 'SEARCH_CANCEL':
+      // Drop out of the loading state without surfacing an error — used when the
+      // user closes the modal mid-search. Fall back to whatever the queue shows.
+      return {
+        ...state,
+        status: state.jobs.length > 0 ? 'success' : 'idle',
+        error: null,
+      }
 
     case 'ADD_MANUAL':
       return {
@@ -227,9 +237,12 @@ function jobListReducer(state: JobListState, action: JobListAction): JobListStat
 async function scoreJobs(
   jobs: Job[],
   resumeVector: number[],
-  setFitScore: (jobId: string, fitScore: number | null, descriptionVector?: number[]) => void
+  setFitScore: (jobId: string, fitScore: number | null, descriptionVector?: number[]) => void,
+  shouldContinue: () => boolean = () => true
 ): Promise<void> {
   for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
+    // Bail between batches if the run was cancelled (e.g. modal closed).
+    if (!shouldContinue()) return
     const batch = jobs.slice(i, i + BATCH_SIZE)
     await Promise.all(
       batch.map(async job => {
@@ -257,6 +270,7 @@ export type SearchInput = Pick<
 
 interface UseJobSearchReturn {
   search: (params: SearchInput) => Promise<void>
+  cancelSearch: () => void
   addManual: (job: ManualJobFields) => void
   setFitScore: (jobId: string, fitScore: number | null, descriptionVector?: number[]) => void
   setRewrite: (jobId: string, result: RewriteResult) => void
@@ -281,6 +295,16 @@ export function useJobSearch(
   // resolution, the late-embed effect) read current state, not a stale closure.
   const jobsRef = useRef(state.jobs)
   jobsRef.current = state.jobs
+
+  // Mirrors status so cancelSearch can read it without going stale in a closure.
+  const statusRef = useRef(state.status)
+  statusRef.current = state.status
+
+  // Aborts the in-flight job-search fetch. runId is the cancellation generation:
+  // every search/scoring run captures the current value and bails the moment it
+  // no longer matches, so a cancelled run stops dispatching once superseded.
+  const abortRef = useRef<AbortController | null>(null)
+  const runIdRef = useRef(0)
 
   function setFitScore(jobId: string, fitScore: number | null, descriptionVector?: number[]) {
     dispatch({ type: 'SET_FIT_SCORE', jobId, fitScore, descriptionVector })
@@ -334,14 +358,17 @@ export function useJobSearch(
   }, [state.jobs])
 
   // Backend mode: store embeddings, then score via the pgvector match_jobs RPC.
-  async function scoreViaBackend(jobs: Job[]): Promise<void> {
+  async function scoreViaBackend(jobs: Job[], runId: number): Promise<void> {
+    const live = () => runId === runIdRef.current
     for (const job of jobs) {
+      if (!live()) return
       if (!job.description) {
         setFitScore(job.id, null)
         continue
       }
       try {
         const vector = await embed(job.description)
+        if (!live()) return
         setFitScore(job.id, job.fitScore ?? null, vector)
       } catch (err) {
         console.error(`[useJobSearch] Failed to embed job ${job.id}:`, err)
@@ -350,10 +377,12 @@ export function useJobSearch(
     }
     // Persist embeddings so match_jobs can see them, then score against the resume.
     try {
+      if (!live()) return
       await persistJobs(jobsRef.current)
       const resumeVector = resumeVectorRef.current
       if (!resumeVector) return
       const scores = await matchJobs(resumeVector)
+      if (!live()) return
       for (const [id, score] of Object.entries(scores)) setFitScore(id, score)
       await persistJobs(jobsRef.current)
     } catch (err) {
@@ -361,9 +390,9 @@ export function useJobSearch(
     }
   }
 
-  function triggerScoring(jobs: Job[]) {
+  function triggerScoring(jobs: Job[], runId: number) {
     if (HAS_BACKEND) {
-      void scoreViaBackend(jobs)
+      void scoreViaBackend(jobs, runId)
       return
     }
     const resumeVector = resumeVectorRef.current
@@ -372,27 +401,41 @@ export function useJobSearch(
       jobs.forEach(job => setFitScore(job.id, null))
       return
     }
-    void scoreJobs(jobs, resumeVector, setFitScore)
+    void scoreJobs(jobs, resumeVector, setFitScore, () => runId === runIdRef.current)
   }
 
   async function search(params: SearchInput): Promise<void> {
+    // Supersede any prior run: abort its fetch and invalidate its scoring.
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    const runId = ++runIdRef.current
+
     dispatch({ type: 'SEARCH_START' })
 
     try {
-      const result = await searchJobs({
-        query: params.query,
-        location: params.location,
-        datePosted: params.datePosted,
-        workFromHome: params.workFromHome,
-        employmentTypes: params.employmentTypes,
-      })
+      const result = await searchJobs(
+        {
+          query: params.query,
+          location: params.location,
+          datePosted: params.datePosted,
+          workFromHome: params.workFromHome,
+          employmentTypes: params.employmentTypes,
+        },
+        controller.signal
+      )
+      // Cancelled while the request was in flight — drop the result silently.
+      if (runId !== runIdRef.current) return
       // Score only ids not already in the queue — merged duplicates keep their
       // existing score, so re-embedding them would be wasted work.
       const existingIds = new Set(jobsRef.current.map(job => job.id))
       const newJobs = result.jobs.filter(job => !existingIds.has(job.id))
       dispatch({ type: 'SEARCH_SUCCESS', jobs: result.jobs })
-      triggerScoring(newJobs)
+      triggerScoring(newJobs, runId)
     } catch (err) {
+      // Swallow errors from an aborted/superseded run — cancelSearch already
+      // reset the status, so surfacing "Search failed" would be misleading.
+      if (controller.signal.aborted || runId !== runIdRef.current) return
       dispatch({
         type: 'SEARCH_ERROR',
         error: err instanceof JobSearchError ? err.message : 'Search failed',
@@ -400,10 +443,22 @@ export function useJobSearch(
     }
   }
 
+  // Closing the modal mid-search cancels the request: abort the fetch, bump the
+  // run id so in-flight scoring stops, and clear the loading state so the button
+  // re-enables. No-op unless a search is actually in flight, so the auto-close
+  // after a successful search doesn't kill the background scoring it kicked off.
+  function cancelSearch() {
+    if (statusRef.current !== 'loading') return
+    abortRef.current?.abort()
+    abortRef.current = null
+    runIdRef.current += 1
+    dispatch({ type: 'SEARCH_CANCEL' })
+  }
+
   function addManual(fields: ManualJobFields) {
     const created = createManualJob(fields)
     dispatch({ type: 'ADD_MANUAL', job: created })
-    triggerScoring([created])
+    triggerScoring([created], runIdRef.current)
   }
 
   // When the resume embedding lands after jobs already exist (searched before
@@ -412,12 +467,13 @@ export function useJobSearch(
   useEffect(() => {
     if (!resumeReady) return
     const pending = jobsRef.current.filter(job => typeof job.fitScore !== 'number')
-    if (pending.length > 0) triggerScoring(pending)
+    if (pending.length > 0) triggerScoring(pending, runIdRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeReady])
 
   return {
     search,
+    cancelSearch,
     addManual,
     setFitScore,
     setRewrite,

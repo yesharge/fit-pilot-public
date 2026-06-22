@@ -29,7 +29,7 @@ The Vite app lives in the `fit-pilot/` subdirectory of the repo.
 
 ```bash
 git clone https://github.com/yesharge/fit-pilot-public
-cd fit-pilot/fit-pilot
+cd fit-pilot-public/fit-pilot
 npm install
 ```
 

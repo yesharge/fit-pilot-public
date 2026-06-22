@@ -16,7 +16,8 @@ export class JobSearchError extends Error {
 }
 
 export async function searchJobs(
-  params: JobSearchParams
+  params: JobSearchParams,
+  signal?: AbortSignal
 ): Promise<JobSearchResult> {
   const {
     query,
@@ -45,7 +46,7 @@ export async function searchJobs(
   // client mode calls RapidAPI directly with the user's own key.
   let res: Response
   if (HAS_BACKEND) {
-    res = await callFunction('jsearch', { searchParams: searchParams.toString() })
+    res = await callFunction('jsearch', { searchParams: searchParams.toString() }, signal)
   } else {
     const apiKey = getJSearchKey()
     if (!apiKey) {
@@ -56,6 +57,7 @@ export async function searchJobs(
         'x-rapidapi-key': apiKey,
         'x-rapidapi-host': 'jsearch.p.rapidapi.com',
       },
+      signal,
     })
   }
 
