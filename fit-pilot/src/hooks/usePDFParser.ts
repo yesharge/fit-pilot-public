@@ -3,9 +3,16 @@ import { pdfjsLib } from '@/lib/ai/pdfWorker'
 import { estimateTokens } from '@/lib/ai/utils'
 
 type ParseStatus = 'idle' | 'parsing' | 'parsed' | 'error'
- 
+
+export interface ParseResult {
+  text: string
+  filename: string
+  pageCount: number
+  tokenCount: number
+}
+
 interface UsePDFParserReturn {
-  parseFile: (file: File) => Promise<string | null>
+  parseFile: (file: File) => Promise<ParseResult | null>
   text: string
   filename: string
   pageCount: number
@@ -63,7 +70,7 @@ export function usePDFParser(): UsePDFParserReturn {
                 console.log('[usePDFParser] extracted text:', extracted.slice(0, 500) + '…')
                 console.log(`[usePDFParser] ${pdf.numPages} pages, ~${tokens} tokens`)
               }
-            return extracted
+            return { text: extracted, filename: file.name, pageCount: pdf.numPages, tokenCount: tokens }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to parse PDF')
             setStatus('error')

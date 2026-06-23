@@ -2,19 +2,47 @@ import { useRef, useState } from 'react'
 import { usePDFParser } from '@/hooks/usePDFParser'
 import styles from './DropZone.module.css'
 
-interface DropZoneProps {
-  onParsed: (text: string) => void
+interface SavedResume {
+  filename: string
+  pageCount: number
+  tokenCount: number
 }
 
-export function DropZone({ onParsed }: DropZoneProps) {
+interface DropZoneProps {
+  onParsed: (
+    text: string,
+    meta?: { filename: string; pageCount: number; tokenCount: number }
+  ) => void
+  /** A resume restored from storage; shown as the file summary until the user
+   *  uploads a new one this session. Reactive, so a resume that loads
+   *  asynchronously (backend mode) still appears once it arrives. */
+  savedResume?: SavedResume | null
+}
+
+export function DropZone({ onParsed, savedResume }: DropZoneProps) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { parseFile, filename, pageCount, tokenCount, status, error } = usePDFParser()
 
+  // Show the summary either for a file parsed this session, or for a resume
+  // restored from storage (when the parser is still idle).
+  const summary =
+    status === 'parsed'
+      ? { filename, pageCount, tokenCount }
+      : status === 'idle' && savedResume
+        ? savedResume
+        : null
+
   async function handleFile(file: File) {
     if (!file || file.type !== 'application/pdf') return
-    const extracted = await parseFile(file)
-    if (extracted) onParsed(extracted)
+    const result = await parseFile(file)
+    if (result) {
+      onParsed(result.text, {
+        filename: result.filename,
+        pageCount: result.pageCount,
+        tokenCount: result.tokenCount,
+      })
+    }
   }
 
   function onDragOver(e: React.DragEvent) {
@@ -54,15 +82,16 @@ export function DropZone({ onParsed }: DropZoneProps) {
     )
   }
 
-  // Parsed: show file summary
-  if (status === 'parsed') {
+  // Parsed this session, or restored from storage: show the file summary.
+  if (summary) {
     return (
       <div className={styles.parsed}>
         <span className={styles.parsedIcon}>✓</span>
         <div className={styles.parsedInfo}>
-          <span className={styles.parsedName}>{filename}</span>
+          <span className={styles.parsedName}>{summary.filename}</span>
           <span className={styles.parsedMeta}>
-            {pageCount} {pageCount === 1 ? 'page' : 'pages'} · ~{tokenCount.toLocaleString()} tokens
+            {summary.pageCount} {summary.pageCount === 1 ? 'page' : 'pages'} · ~
+            {summary.tokenCount.toLocaleString()} tokens
           </span>
         </div>
         <button

@@ -19,12 +19,16 @@ no env vars nothing changes.
 
 ```
 src/lib/
-├─ config.ts      HAS_BACKEND flag from env
-├─ supabase.ts    supabase client (null in client mode) + callFunction()
-└─ jobStore.ts    load / persist / matchJobs — localStorage vs Postgres
+├─ config.ts        HAS_BACKEND flag from env
+├─ supabase.ts      supabase client (null in client mode) + callFunction()
+├─ jobStore.ts      load / persist / matchJobs — localStorage vs Postgres
+├─ resumeStorage.ts localStorage resume snapshot (client mode)
+└─ resumeStore.ts   load / persist resume — localStorage vs Postgres
 
 supabase/
-├─ migrations/0001_init.sql   jobs table + pgvector + match_jobs RPC
+├─ migrations/0001_init.sql       jobs table + pgvector + match_jobs RPC
+├─ migrations/0002_job_id_text.sql jobs.id → text
+├─ migrations/0003_resume.sql     singleton resume table (text + embedding)
 └─ functions/
    ├─ _shared/cors.ts         CORS + optional shared-token guard
    ├─ embed/index.ts          OpenAI embeddings proxy
@@ -36,6 +40,13 @@ supabase/
 backend mode calls the edge functions, client mode calls the providers directly
 with the user's key. `useJobSearch` loads/persists through `jobStore` and scores
 via `match_jobs` in backend mode (cosine in the browser otherwise).
+
+The resume persists the same way: `Home` loads/persists it through `resumeStore`,
+which writes a single pinned row in the `resume` table (backend mode) or a
+localStorage snapshot (client mode). Both store the resume text **and** its
+embedding, so a reload lands straight on the dashboard without re-uploading or
+re-embedding. Scoring still uses the in-memory resume vector against
+`match_jobs`; the table is purely for persistence across reloads/devices.
 
 ## Turning it on
 
@@ -56,9 +67,13 @@ Settings → API.
 supabase db push
 ```
 
-This runs `migrations/0001_init.sql`: it enables `pgvector`, creates the `jobs`
-table (with a `description_embedding vector(1536)` column, an `hnsw` index, and
-`rewrites` as a jsonb array), and defines the `match_jobs` RPC.
+This runs the migrations in order: `0001_init.sql` enables `pgvector`, creates
+the `jobs` table (with a `description_embedding vector(1536)` column, an `hnsw`
+index, and `rewrites` as a jsonb array) and the `match_jobs` RPC; `0002` widens
+`jobs.id` to text; `0003_resume.sql` adds the singleton `resume` table (resume
+text + `embedding vector(1536)` + file metadata) so the resume persists across
+reloads. Both tables get an `anon`-full-access RLS policy (single-user; see
+**Security**).
 
 #### How pgvector scoring works
 

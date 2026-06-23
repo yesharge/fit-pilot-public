@@ -27,3 +27,6 @@ dist-ssr
 
 # Vite cache
 /.vite/
+
+# Supabase temp files
+supabase/.temp/
