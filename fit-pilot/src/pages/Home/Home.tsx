@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { RewriteSlideOver } from '@/components/RewriteSlideOver/RewriteSlideOver'
 import { Toast } from '@/components/Toast/Toast'
 import { DropZone } from '@/components/DropZone/DropZone.tsx'
@@ -15,9 +15,18 @@ import { embed } from '@/lib/embeddings'
 import { countByStatus } from '@/lib/applicationStatus'
 import { getApiKey } from '@/lib/ai/providers/apiKey'
 import { HAS_BACKEND } from '@/lib/config'
+import { loadResumeSync, loadResumeAsync, persistResume } from '@/lib/resumeStore'
 import styles from './Home.module.css'
 
 type AddTab = 'search' | 'paste'
+
+/** Metadata from the PDF parser, persisted so the upload zone can show the
+ *  saved file after a reload. */
+export interface ResumeMeta {
+  filename: string
+  pageCount: number
+  tokenCount: number
+}
 
 const STEPS: { title: string; copy: string }[] = [
   { title: 'Upload resume', copy: 'You are here' },
@@ -26,11 +35,22 @@ const STEPS: { title: string; copy: string }[] = [
 ]
 
 export default function Home() {
-  const resumeVectorRef = useRef<number[] | null>(null)
-  const lastEmbeddedTextRef = useRef<string | null>(null)
-  const [resumeText, setResumeText] = useState('')
-  const [hasResume, setHasResume] = useState(false)
-  const [resumeReady, setResumeReady] = useState(false)
+  // Rehydrate a previously uploaded resume so a reload lands on the dashboard
+  // instead of forcing a re-upload. Sync load is localStorage (client mode);
+  // backend mode loads from Postgres async in the effect below.
+  const [saved] = useState(() => loadResumeSync())
+  const resumeVectorRef = useRef<number[] | null>(saved?.vector ?? null)
+  // Only treat the stored text as "already embedded" if a vector was saved with
+  // it; otherwise a reload should re-embed.
+  const lastEmbeddedTextRef = useRef<string | null>(saved?.vector ? saved.text : null)
+  const [resumeText, setResumeText] = useState(saved?.text ?? '')
+  const [hasResume, setHasResume] = useState(Boolean(saved))
+  const [resumeReady, setResumeReady] = useState(Boolean(saved?.vector))
+  const [resumeMeta, setResumeMeta] = useState<ResumeMeta | null>(
+    saved
+      ? { filename: saved.filename, pageCount: saved.pageCount, tokenCount: saved.tokenCount }
+      : null
+  )
   const [rewriteJob, setRewriteJob] = useState<Job | null>(null)
   const [detailJobId, setDetailJobId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
@@ -56,25 +76,63 @@ export default function Home() {
   const hasJobs = jobs.length > 0
   const detailJob = detailJobId ? jobs.find(j => j.id === detailJobId) ?? null : null
 
-  async function handleResumeParsed(text: string) {
+  // Backend mode: the resume lives in Postgres, so load it on mount and hydrate
+  // the same state the localStorage path seeds synchronously.
+  useEffect(() => {
+    if (!HAS_BACKEND) return
+    let cancelled = false
+    loadResumeAsync()
+      .then(stored => {
+        if (cancelled || !stored) return
+        setResumeText(stored.text)
+        setHasResume(true)
+        setResumeMeta({
+          filename: stored.filename,
+          pageCount: stored.pageCount,
+          tokenCount: stored.tokenCount,
+        })
+        if (stored.vector) {
+          resumeVectorRef.current = stored.vector
+          lastEmbeddedTextRef.current = stored.text
+          setResumeReady(true)
+        }
+      })
+      .catch(err => console.error('[Home] Failed to load resume:', err))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleResumeParsed(text: string, meta?: ResumeMeta) {
+    const hasText = text.trim().length > 0
     setResumeText(text)
-    setHasResume(text.trim().length > 0)
+    setHasResume(hasText)
+    if (meta) setResumeMeta(meta)
+
+    const persistMeta: ResumeMeta =
+      meta ?? resumeMeta ?? { filename: 'resume.pdf', pageCount: 0, tokenCount: 0 }
 
     if (text === lastEmbeddedTextRef.current) return
 
     if (!HAS_BACKEND && !getApiKey('openai')) {
       console.error('[Home] Missing OpenAI API key')
+      // Still persist the text so the dashboard survives a reload; scoring will
+      // pick up once a key is added and the resume is re-embedded.
+      if (hasText) void persistResume({ text, vector: null, ...persistMeta })
       return
     }
 
     try {
-      resumeVectorRef.current = await embed(text)
+      const vector = await embed(text)
+      resumeVectorRef.current = vector
       lastEmbeddedTextRef.current = text
       setHasResume(true)
       setResumeReady(true)
+      void persistResume({ text, vector, ...persistMeta })
     } catch (err) {
       console.error('[Home] Resume embedding failed:', err)
       setResumeReady(false)
+      if (hasText) void persistResume({ text, vector: null, ...persistMeta })
     }
   }
 
@@ -117,7 +175,7 @@ export default function Home() {
 
       {/* idx 2 — DropZone wrapper (stays mounted across states) */}
       <div className={hasResume ? styles.toolbar : styles.heroDrop}>
-        <DropZone onParsed={handleResumeParsed} />
+        <DropZone onParsed={handleResumeParsed} savedResume={resumeMeta} />
         {hasResume && (
           <div className={styles.toolbarActions}>
             <button
