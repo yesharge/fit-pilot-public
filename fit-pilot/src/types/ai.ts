@@ -23,11 +23,39 @@ export interface ExperienceEntry {
     note?: string
 }
 
+/** Candidate header info, copied verbatim from the original resume — never rewritten. */
+export interface ContactInfo {
+    name?: string
+    email?: string
+    phone?: string
+    location?: string
+    links?: string[]        // LinkedIn, GitHub, portfolio, etc.
+}
+
+/** One education entry, copied verbatim from the original resume. */
+export interface EducationEntry {
+    institution: string
+    degree?: string
+    dates?: string
+    details?: string[]      // honors, GPA, coursework — only if present in the original
+}
+
+/** A catch-all section (certifications, projects, awards…) copied verbatim. */
+export interface ResumeSectionBlock {
+    heading: string
+    lines: string[]
+}
+
 export interface RewriteResult {
     summary: DiffSection
     experience: ExperienceEntry[]
     skills: DiffSection     // join/split on ', ' at the edges; keep it a string in the schema
     match_score: { original: number; rewritten: number } // 0–100, model's rating of the original resume vs job
+    // Passthrough sections: copied verbatim from the original so the generated PDF
+    // is complete. Optional so older stored records (pre-PDF) still type-check.
+    contact?: ContactInfo
+    education?: EducationEntry[]
+    additionalSections?: ResumeSectionBlock[]
   }
 
 export interface RewriteRecord {

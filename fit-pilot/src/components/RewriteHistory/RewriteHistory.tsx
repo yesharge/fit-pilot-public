@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { downloadText } from '@/lib/download'
-import { serializeCoverLetter, serializeRewriteResult } from '@/lib/ai/serialize'
+import { downloadResumePdf } from '@/lib/pdf/resumePdf'
+import { downloadCoverLetterPdf } from '@/lib/pdf/coverLetterPdf'
 import type { RewriteRecord } from '@/types/ai'
 import styles from './RewriteHistory.module.css'
 
@@ -65,9 +65,9 @@ export function RewriteHistory({
                     type="button"
                     className={styles.downloadBtn}
                     onClick={() =>
-                      downloadText(
-                        serializeRewriteResult(record.result),
-                        `${filenameBase}-v${versionNumber}-resume.txt`
+                      downloadResumePdf(
+                        record.result,
+                        `${filenameBase}-v${versionNumber}-resume.pdf`
                       )
                     }
                   >
@@ -78,9 +78,10 @@ export function RewriteHistory({
                       type="button"
                       className={styles.downloadBtn}
                       onClick={() =>
-                        downloadText(
-                          serializeCoverLetter(record.coverLetter!),
-                          `${filenameBase}-v${versionNumber}-cover-letter.txt`
+                        downloadCoverLetterPdf(
+                          record.coverLetter!,
+                          `${filenameBase}-v${versionNumber}-cover-letter.pdf`,
+                          record.result.contact
                         )
                       }
                     >

@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CoverLetterEditor } from '@/components/CoverLetterEditor/CoverLetterEditor'
-import { downloadText } from '@/lib/download'
+import { downloadCoverLetterPdf } from '@/lib/pdf/coverLetterPdf'
 import { serializeCoverLetter } from '@/lib/ai/serialize'
-import type { CoverLetter, CoverLetterTone } from '@/types/ai'
+import type { ContactInfo, CoverLetter, CoverLetterTone } from '@/types/ai'
 import type { CoverLetterStatus } from '@/hooks/useCoverLetter'
 import styles from './CoverLetterPanel.module.css'
 
 interface CoverLetterPanelProps {
   jobTitle: string
   company: string
+  /** Passthrough contact info from the rewrite — used for the PDF letterhead. */
+  contact?: ContactInfo
   status: CoverLetterStatus
   streamingText: string
   result: CoverLetter | null
@@ -45,6 +47,7 @@ function parseEditedText(text: string, tone: CoverLetterTone): CoverLetter {
 export function CoverLetterPanel({
   jobTitle,
   company,
+  contact,
   status,
   streamingText,
   result,
@@ -100,14 +103,19 @@ export function CoverLetterPanel({
   }
 
   function handleDownload() {
-    if (!serializedCoverLetter) return
+    const letterToExport = letter ?? (displayText ? parseEditedText(displayText, tone) : null)
+    if (!letterToExport) return
 
     const slug = `${company}-${jobTitle}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
 
-    downloadText(serializedCoverLetter, slug ? `${slug}-cover-letter.txt` : 'cover-letter.txt')
+    downloadCoverLetterPdf(
+      letterToExport,
+      slug ? `${slug}-cover-letter.pdf` : 'cover-letter.pdf',
+      contact,
+    )
   }
 
   return (
@@ -170,7 +178,7 @@ export function CoverLetterPanel({
               onClick={handleDownload}
               disabled={!serializedCoverLetter || isGenerating}
             >
-              Download .txt
+              Download PDF
             </button>
           </div>
 
