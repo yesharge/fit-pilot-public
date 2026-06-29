@@ -93,12 +93,12 @@ export function RewriteSlideOver({
   }, [coverLetterStatus, coverLetterResult, job, onCoverLetter])
 
   const resumeFilename = (() => {
-    if (!job) return 'resume.txt'
+    if (!job) return 'resume.pdf'
     const slug = `${job.company}-${job.title}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
-    return slug ? `${slug}-resume.txt` : 'resume.txt'
+    return slug ? `${slug}-resume.pdf` : 'resume.pdf'
   })()
 
   function handleGenerateCoverLetter(tone: CoverLetterTone) {
@@ -137,6 +137,7 @@ export function RewriteSlideOver({
           <CoverLetterPanel
             jobTitle={job.title}
             company={job.company}
+            contact={result.contact}
             status={coverLetterStatus}
             streamingText={coverLetterStreamingText}
             result={coverLetterResult}

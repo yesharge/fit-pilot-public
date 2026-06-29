@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { callAI } from '@/lib/ai/client'
 import { parseAIJson } from '@/lib/ai/parseJson'
-import { buildUserMessage, REWRITE_PROMPT_V2 } from '@/lib/ai/prompts'
+import { buildUserMessage, REWRITE_PROMPT_V3 } from '@/lib/ai/prompts'
 import { ACTIVE_PROVIDER } from '@/lib/ai/providers'
 import type { CoverLetterTone, RewriteResult } from '@/types/ai'
 import { getApiKey } from '@/lib/ai/providers/apiKey'
@@ -75,7 +75,7 @@ export function useRewrite() {
     setResult(null)
     setError(null)
 
-    const systemPrompt = REWRITE_PROMPT_V2
+    const systemPrompt = REWRITE_PROMPT_V3
 
     try {
       const fullText = await callAI({

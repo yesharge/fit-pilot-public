@@ -154,7 +154,7 @@ function jobListReducer(state: JobListState, action: JobListAction): JobListStat
                   ...job.rewrites,
                   {
                     result: action.result,
-                    promptVersion: 'v2',
+                    promptVersion: 'v3',
                     createdAt: new Date().toISOString(),
                   },
                 ],
