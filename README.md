@@ -8,7 +8,8 @@ Built with React, TypeScript, and Vite, on top of the Anthropic and OpenAI APIs.
 
 [fit-pilot demo — click to play](https://github.com/user-attachments/assets/93f037a3-ddab-4bbe-972c-735579f1a31a)
 
-<img width="1728" height="941" alt="Screenshot 2026-06-15 at 2 34 09 PM" src="https://github.com/user-attachments/assets/f16e8c01-b860-4bda-b326-9a6cfb04ccbb" />
+<img width="1709" height="882" alt="Screenshot 2026-06-15 at 2 24 06 PM" src="https://github.com/user-attachments/assets/00eb702b-c373-4a93-ae32-2562a2b8b307" />
+
 
 ## Features
 
