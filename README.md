@@ -6,7 +6,7 @@ Built with React, TypeScript, and Vite, on top of the Anthropic and OpenAI APIs.
 
 ## Demo
 
-[![fit-pilot demo — click to play](docs/demo.mp4)]
+[![fit-pilot demo — click to play](https://github.com/user-attachments/assets/93f037a3-ddab-4bbe-972c-735579f1a31a)]
 
 <img width="1728" height="941" alt="Screenshot 2026-06-15 at 2 34 09 PM" src="https://github.com/user-attachments/assets/f16e8c01-b860-4bda-b326-9a6cfb04ccbb" />
 
