@@ -67,6 +67,7 @@ export default function Home() {
     setRewrite,
     setCoverLetter,
     moveJob,
+    deleteJob,
     setApplicationStatus,
     setNotes,
     markApplied,
@@ -226,6 +227,7 @@ export default function Home() {
                 jobs={jobs}
                 onOpen={job => setDetailJobId(job.id)}
                 onMove={moveJob}
+                onDelete={deleteJob}
               />
             </>
           ) : (
@@ -282,6 +284,7 @@ export default function Home() {
         onMove={moveJob}
         onStatusChange={setApplicationStatus}
         onNotesChange={setNotes}
+        onDelete={deleteJob}
       />
 
       <RewriteSlideOver

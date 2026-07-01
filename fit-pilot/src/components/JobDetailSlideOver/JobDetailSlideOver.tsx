@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { SlideOver } from '@/components/SlideOver/SlideOver'
 import { StatusStepper } from '@/components/StatusStepper/StatusStepper'
 import { RewriteHistory } from '@/components/RewriteHistory/RewriteHistory'
@@ -15,6 +16,7 @@ interface JobDetailSlideOverProps {
   onMove: (id: string, column: ColumnId) => void
   onStatusChange: (id: string, status: ApplicationStatus) => void
   onNotesChange: (id: string, notes: string) => void
+  onDelete: (id: string) => void
 }
 
 const MOVE_ACTIONS: { column: ColumnId; label: string }[] = [
@@ -39,7 +41,25 @@ export function JobDetailSlideOver({
   onMove,
   onStatusChange,
   onNotesChange,
+  onDelete,
 }: JobDetailSlideOverProps) {
+  // Inline two-step confirm rather than window.confirm: the SlideOver's focus
+  // trap refocuses the panel on focusin, which auto-dismisses a native confirm
+  // dialog before the user can act on it.
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+
+  // Reset the confirm state whenever the panel opens a different job or closes.
+  useEffect(() => {
+    setConfirmingDelete(false)
+  }, [job?.id, isOpen])
+
+  function handleConfirmDelete() {
+    console.log("job", job)
+    if (!job) return
+    onDelete(job.id)
+    onClose()
+  }
+
   const title = job ? `${job.title} · ${job.company}` : 'Job details'
   const filenameBase = job
     ? `${job.company}-${job.title}`
@@ -129,15 +149,44 @@ export function JobDetailSlideOver({
             </section>
           )}
 
-          <button
-            type="button"
-            className={styles.rewriteBtn}
-            onClick={() => onRewrite(job)}
-            disabled={!hasResume}
-            title={hasResume ? undefined : 'Upload a resume first'}
-          >
-            Rewrite for this job
-          </button>
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={styles.rewriteBtn}
+              onClick={() => onRewrite(job)}
+              disabled={!hasResume}
+              title={hasResume ? undefined : 'Upload a resume first'}
+            >
+              Rewrite for this job
+            </button>
+            {confirmingDelete ? (
+              <div className={styles.confirmDelete}>
+                <span className={styles.confirmLabel}>Delete this role?</span>
+                <button
+                  type="button"
+                  className={styles.deleteBtn}
+                  onClick={handleConfirmDelete}
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={() => setConfirmingDelete(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className={styles.deleteBtn}
+                onClick={() => setConfirmingDelete(true)}
+              >
+                Delete role
+              </button>
+            )}
+          </div>
         </div>
       )}
     </SlideOver>

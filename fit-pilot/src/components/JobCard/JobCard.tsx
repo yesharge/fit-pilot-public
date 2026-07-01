@@ -5,6 +5,7 @@ import styles from './JobCard.module.css'
 interface JobCardProps {
   job: Job
   onOpen: (job: Job) => void
+  onDelete: (id: string) => void
 }
 
 const SNIPPET_LENGTH = 140
@@ -52,7 +53,7 @@ function descriptionSnippet(description: string): string {
   return `${trimmed.slice(0, SNIPPET_LENGTH)}…`
 }
 
-export function JobCard({ job, onOpen }: JobCardProps) {
+export function JobCard({ job, onOpen, onDelete }: JobCardProps) {
   const isRewritten = job.rewrites.length > 0
   const isApplied = job.appliedAt && job.applicationStatus !== 'none'
   const snippet = descriptionSnippet(job.description)
@@ -61,6 +62,13 @@ export function JobCard({ job, onOpen }: JobCardProps) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       onOpen(job)
+    }
+  }
+
+  function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (window.confirm(`Delete "${job.title}" at ${job.company}? This can't be undone.`)) {
+      onDelete(job.id)
     }
   }
 
@@ -78,7 +86,18 @@ export function JobCard({ job, onOpen }: JobCardProps) {
           <h3 className={styles.title}>{job.title}</h3>
           <p className={styles.company}>{job.company}</p>
         </div>
-        <FitBadge fitScore={job.fitScore} />
+        <div className={styles.headerRight}>
+          <FitBadge fitScore={job.fitScore} />
+          <button
+            type="button"
+            className={styles.deleteBtn}
+            onClick={handleDelete}
+            aria-label={`Delete ${job.title} at ${job.company}`}
+            title="Delete role"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {(isRewritten || isApplied) && (

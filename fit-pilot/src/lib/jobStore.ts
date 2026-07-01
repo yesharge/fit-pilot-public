@@ -95,6 +95,15 @@ export async function persistJobs(jobs: Job[]): Promise<void> {
   if (error) throw error
 }
 
+/** Delete a single job. Backend mode removes the row (an upsert of the
+ *  remaining jobs would leave the deleted row behind); client mode is a no-op
+ *  because saveJobQueue rewrites the whole array from the trimmed state. */
+export async function deleteJobById(id: string): Promise<void> {
+  if (!HAS_BACKEND || !supabase) return
+  const { error } = await supabase.from('jobs').delete().eq('id', id)
+  if (error) throw error
+}
+
 /** pgvector scoring: returns { jobId: fitScore } from the match_jobs RPC. */
 export async function matchJobs(
   resumeEmbedding: number[]

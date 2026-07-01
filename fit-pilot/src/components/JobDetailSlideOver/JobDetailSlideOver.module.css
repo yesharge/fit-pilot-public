@@ -127,8 +127,61 @@
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
+.footerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.confirmDelete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.confirmLabel {
+  font-size: var(--text-sm);
+  color: var(--text-h);
+}
+
+.cancelBtn {
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text);
+  background: var(--code-bg);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.cancelBtn:hover {
+  border-color: var(--accent-border);
+}
+
+.deleteBtn {
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--danger-border, var(--border));
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--danger-text, #b42318);
+  background: var(--danger-bg, transparent);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.deleteBtn:hover {
+  border-color: var(--danger-text, #b42318);
+}
+
 .rewriteBtn {
-  align-self: flex-start;
   padding: var(--space-3) var(--space-5);
   border: 1px solid var(--accent-border);
   border-radius: var(--radius-md);
