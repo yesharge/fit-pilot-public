@@ -8,9 +8,10 @@ interface JobQueueProps {
   jobs: Job[]
   onOpen: (job: Job) => void
   onMove: (id: string, column: ColumnId) => void
+  onDelete: (id: string) => void
 }
 
-export function JobQueue({ jobs, onOpen, onMove }: JobQueueProps) {
+export function JobQueue({ jobs, onOpen, onMove, onDelete }: JobQueueProps) {
   const [dragOverColumn, setDragOverColumn] = useState<ColumnId | null>(null)
   const draggedJobIdRef = useRef<string | null>(null)
 
@@ -83,7 +84,7 @@ export function JobQueue({ jobs, onOpen, onMove }: JobQueueProps) {
                   onDragStart={() => handleDragStart(job.id)}
                   onDragEnd={handleDragEnd}
                 >
-                  <JobCard job={job} onOpen={onOpen} />
+                  <JobCard job={job} onOpen={onOpen} onDelete={onDelete} />
                 </li>
               ))}
             </ul>

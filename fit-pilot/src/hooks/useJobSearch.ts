@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, type RefObject } from 'react'
 import { cosineSimilarity, embed, scoreFromSimilarity } from '@/lib/embeddings'
 import { JobSearchError, searchJobs } from '@/lib/job/job'
-import { loadJobsAsync, loadJobsSync, matchJobs, persistJobs } from '@/lib/jobStore'
+import { deleteJobById, loadJobsAsync, loadJobsSync, matchJobs, persistJobs } from '@/lib/jobStore'
 import { HAS_BACKEND } from '@/lib/config'
 import type { CoverLetter, RewriteResult } from '@/types/ai'
 import type { ApplicationStatus } from '@/lib/applicationStatus'
@@ -35,6 +35,7 @@ type JobListAction =
   | { type: 'SET_REWRITE'; jobId: string; result: RewriteResult }
   | { type: 'SET_COVER_LETTER'; jobId: string; coverLetter: CoverLetter }
   | { type: 'MOVE_JOB'; jobId: string; column: ColumnId }
+  | { type: 'DELETE_JOB'; jobId: string }
   | { type: 'SET_APPLICATION_STATUS'; jobId: string; status: ApplicationStatus; markLatestRewrite?: boolean }
   | { type: 'SET_NOTES'; jobId: string; notes: string }
 
@@ -188,6 +189,12 @@ function jobListReducer(state: JobListState, action: JobListAction): JobListStat
         ),
       }
 
+    case 'DELETE_JOB':
+      return {
+        ...state,
+        jobs: state.jobs.filter(job => job.id !== action.jobId),
+      }
+
     case 'SET_APPLICATION_STATUS': {
       const appliedAt = new Date().toISOString()
       return {
@@ -276,6 +283,7 @@ interface UseJobSearchReturn {
   setRewrite: (jobId: string, result: RewriteResult) => void
   setCoverLetter: (jobId: string, coverLetter: CoverLetter) => void
   moveJob: (jobId: string, column: ColumnId) => void
+  deleteJob: (jobId: string) => void
   setApplicationStatus: (jobId: string, status: ApplicationStatus) => void
   setNotes: (jobId: string, notes: string) => void
   markApplied: (jobId: string) => void
@@ -320,6 +328,15 @@ export function useJobSearch(
 
   function moveJob(jobId: string, column: ColumnId) {
     dispatch({ type: 'MOVE_JOB', jobId, column })
+  }
+
+  function deleteJob(jobId: string) {
+    dispatch({ type: 'DELETE_JOB', jobId })
+    // Client mode: the persist effect rewrites localStorage from the trimmed
+    // state. Backend mode: an upsert won't remove the row, so delete it directly.
+    void deleteJobById(jobId).catch(err =>
+      console.error(`[useJobSearch] Failed to delete job ${jobId}:`, err)
+    )
   }
 
   function setApplicationStatus(jobId: string, status: ApplicationStatus) {
@@ -479,6 +496,7 @@ export function useJobSearch(
     setRewrite,
     setCoverLetter,
     moveJob,
+    deleteJob,
     setApplicationStatus,
     setNotes,
     markApplied,

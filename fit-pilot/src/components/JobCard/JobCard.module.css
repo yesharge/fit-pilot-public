@@ -27,6 +27,42 @@
   flex: 1;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  line-height: 1;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity var(--transition), color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.card:hover .deleteBtn,
+.deleteBtn:focus-visible {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  color: var(--danger-text, #b42318);
+  border-color: var(--danger-border, var(--border));
+  background: var(--danger-bg, var(--code-bg));
+}
+
 .title {
   margin: 0;
   font-size: var(--text-base);
